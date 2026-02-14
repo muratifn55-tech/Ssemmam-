@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Sevgililer Günü 💛</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  background:#F9D423;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:Arial,sans-serif;
+  overflow:hidden;
+}
+
+/* Zarf */
+.envelope{
+  width:300px;
+  height:195px;
+  background:#f5deb3;
+  border-radius:12px;
+  position:relative;
+  cursor:pointer;
+  box-shadow:0 15px 35px rgba(0,0,0,.25);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:5;
+}
+.envelope::before{
+  content:"";
+  position:absolute;
+  top:0;
+  border-left:150px solid transparent;
+  border-right:150px solid transparent;
+  border-top:100px solid #e0c68c;
+  transform-origin:top;
+  transition:transform 1s ease;
+}
+.envelope.open::before{
+  transform:rotateX(180deg);
+}
+
+/* Mektup */
+.letter{
+  position:absolute;
+  bottom:-30px;
+  width:270px;
+  min-height:170px;
+  background:#fff8dc;
+  border-radius:18px;
+  padding:22px 18px 42px;
+  text-align:center;
+  opacity:0;
+  transform:translateY(40px);
+  transition:all 1.2s ease;
+  display:none;
+  box-shadow:0 5px 20px rgba(0,0,0,.15);
+}
+.letter.show{
+  display:block;
+  opacity:1;
+  transform:translateY(-30px);
+}
+
+#text{
+  color:#333;
+  font-size:1em;
+  line-height:1.4em;
+}
+
+/* Buton */
+button{
+  margin-top:18px;
+  padding:14px 36px;
+  font-size:18px;
+  border:none;
+  border-radius:14px;
+  background:rgba(255,0,0,.25);
+  cursor:pointer;
+}
+
+/* İmza */
+.signature{
+  position:absolute;
+  bottom:12px;
+  left:16px;
+  display:flex;
+  gap:6px;
+}
+.signature span{
+  font-family:cursive;
+  font-size:13px;
+  color:#444;
+}
+.signature .heart{
+  color:#d94b4b;
+}
+
+/* Canvas */
+canvas{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:10;
+}
+</style>
+</head>
+
+<body>
+
+<div class="envelope" id="envelope">
+  <span>Dokun 💌</span>
+
+  <div class="letter" id="letter">
+    <div id="text">Seni seviyorum ama neden?</div>
+    <button id="btn">Dokun</button>
+
+    <div class="signature">
+      <span class="heart">❤</span>
+      <span>Murat & Sema</span>
+    </div>
+  </div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<audio id="music" loop>
+  <source src="Sarki.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const texts=[
+"İlk defa özel bir günde biriyle birlikteyim ama seni biri diye tanımlamak ne senin muhteşemliğini, büyücülüğünü anlatabilir. 10 saniye önce cehennemi yaşatmamış gibi cenneti yaşatmanı, kırık bozuk paramparça uyumsuz olmamıza rağmen her duruma karşı yan yana durmayı ikimizin de gönülden seçmesini… Sana karşı duyduğum aşkı, sevgiyi, sevdayı ve hayranlığı kelimelere dökemem belki ama gözlerime baktığında her şeyi anlayabileceğinden eminim",
+"Senden başkasını görmek istemeyen, tek tercihi Büyücü olan bir çift gözüm var ve büyülendiği için bundan çok memnun. Seninle olmayı, seninle konuşmuyorken bile sana sadık kalmayı, sana bakmayı ve seni sevmeyi seviyorum. Bu dünyada tüm ilklerimi seninle yaşamak, kötü olanları birlikte aşmak ve güzel olanları birlikte sürdürmek istiyorum",
+"Anladığım şeylerden biri ise hayatımın sonuna kadar sana değer, saygı ve sevgi göstermek en büyük amacım oldu. Bilirsin amacım uğruna ölümü göğüslerim. Artık tek amacım seni mutlu etmek ve senin için elimden gelen her şeyi yapmak.",
+"Yüzünden o güzel gülümsemenin asla gitmemesi için elimden gelenin fazlasını yapacağım.",
+"Herkesin bir hikayesi var… benim en güzel satırım sensin. Sevgililer günümüz kutlu olsun ❤️",
+"Günün son hediyesi için Kameranı aç ve cama koş sevgilim💛"
+];
+
+let i=0, opened=false;
+
+const envelope=document.getElementById("envelope");
+const letter=document.getElementById("letter");
+const textEl=document.getElementById("text");
+const btn=document.getElementById("btn");
+
+/* Canvas */
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
+function resize(){
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
+}
+resize();
+addEventListener("resize",resize);
+
+/* 🎵 müzik */
+const music=document.getElementById("music");
+document.addEventListener("click",()=>{
+  music.volume=0.7;
+  music.play().catch(()=>{});
+},{once:true});
+
+/* 🌷 laleler */
+let tulips=[];
+for(let i=0;i<30;i++){
+  tulips.push({x:Math.random()*canvas.width,y:-Math.random()*300,s:1+Math.random()*2});
+}
+function drawTulips(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  let active=false;
+  tulips.forEach(t=>{
+    if(t.y<canvas.height){
+      active=true;
+      t.y+=t.s;
+      ctx.strokeStyle="#2e7d32";
+      ctx.beginPath();
+      ctx.moveTo(t.x,t.y);
+      ctx.lineTo(t.x,t.y+14);
+      ctx.stroke();
+      ctx.fillStyle="#d32f2f";
+      ctx.beginPath();
+      ctx.arc(t.x,t.y,6,Math.PI,0);
+      ctx.fill();
+    }
+  });
+  if(active) requestAnimationFrame(drawTulips);
+}
+drawTulips();
+
+/* ❤️ kalp patlaması */
+let particles=[];
+let showNames=false;
+
+function heart(offset){
+  for(let t=0;t<Math.PI*2;t+=0.12){
+    let x=16*Math.pow(Math.sin(t),3);
+    let y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    particles.push({
+      x:canvas.width/2+offset,
+      y:canvas.height/3,
+      vx:x*0.22,
+      vy:-y*0.22,
+      life:300
+    });
+  }
+}
+
+function startHearts(){
+  heart(-100);
+  heart(100);
+  animate();
+  setTimeout(()=>showNames=true,4000);
+}
+
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  particles.forEach(p=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.life--;
+    ctx.fillStyle="red";
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,2.5,0,Math.PI*2);
+    ctx.fill();
+  });
+
+  particles=particles.filter(p=>p.life>0);
+
+  if(showNames){
+    ctx.fillStyle="#fff";
+    ctx.font="bold 32px cursive";
+    ctx.textAlign="center";
+    ctx.fillText("Murat ❤️ Sema",canvas.width/2,canvas.height/3 - 40);
+  }
+
+  if(particles.length>0) requestAnimationFrame(animate);
+}
+
+/* etkileşim */
+envelope.onclick=()=>{
+  if(!opened){
+    envelope.classList.add("open");
+    letter.style.display="block";
+    setTimeout(()=>letter.classList.add("show"),50);
+    opened=true;
+  }
+};
+
+btn.onclick=()=>{
+  if(i<texts.length){
+    textEl.innerText=texts[i++];
+  }else{
+    btn.style.display="none";
+    textEl.innerText="Günün son hediyesi için kameranı aç ve cam koş sevgilim 🎆";
+    startHearts();
+  }
+};
+</script>
+
+</body>
+</html>
